@@ -2,10 +2,19 @@ import controller.FileHandler;
 import controller.LibraryManager;
 import model.Book;
 import view.Display;
+
 import java.util.*;
 
 public class Main {
+
+    private static ResourceBundle bundle;
+    private static Locale currentLocale;
+
     public static void main(String[] args) {
+
+        currentLocale = new Locale("ua");
+        bundle = ResourceBundle.getBundle("location.messages", currentLocale);
+
         List<Book> library = new ArrayList<>(List.of(
                 new Book("Кайдашева сім’я", "І.Нечуй-Левицький", "Основи", 1879, 220, 230.0),
                 new Book("Маленький принц", "А.де Сент-Екзюпері", "Gallimard", 1943, 96, 180.0),
@@ -20,101 +29,92 @@ public class Main {
         int option;
 
         do {
-            System.out.println("\nМеню:");
-            System.out.println("1 — Пошук книг за автором");
-            System.out.println("2 — Пошук книг за видавництвом");
-            System.out.println("3 — Книги, видані після певного року");
-            System.out.println("4 — Відсортувати за видавництвом");
-            System.out.println("5 — Зберегти бібліотеку у файл");
-            System.out.println("6 — Зчитати бібліотеку з файлу");
-            System.out.println("7 — Знайти рядок із найбільшою кількістю слів у файлі");
-            System.out.println("8 — Зашифрувати файл");
-            System.out.println("9 — Розшифрувати файл");
-            System.out.println("10 — Підрахунок частоти HTML-тегів на сторінці");
-            System.out.println("0 — Вихід");
-            System.out.print("Ваш вибір: ");
+            printMenu();
 
             try {
+                System.out.print(bundle.getString("input.choice") + " ");
                 option = Integer.parseInt(input.nextLine());
             } catch (NumberFormatException e) {
-                System.out.println("Введіть число!");
+                System.out.println(bundle.getString("error.number"));
                 option = -1;
                 continue;
             }
 
             switch (option) {
                 case 1 -> {
-                    System.out.print("Введіть автора: ");
+                    System.out.print(bundle.getString("input.author") + " ");
                     String a = input.nextLine();
                     screen.showList(manager.findByWriter(a));
                 }
                 case 2 -> {
-                    System.out.print("Введіть видавництво: ");
+                    System.out.print(bundle.getString("input.publisher") + " ");
                     String pub = input.nextLine();
                     screen.showList(manager.findByPublisher(pub));
                 }
                 case 3 -> {
                     try {
-                        System.out.print("Введіть рік: ");
+                        System.out.print(bundle.getString("input.year") + " ");
                         int y = Integer.parseInt(input.nextLine());
                         screen.showList(manager.releasedAfter(y));
                     } catch (NumberFormatException e) {
-                        System.out.println("❌ Невірний формат року!");
+                        System.out.println(bundle.getString("error.number"));
                     }
                 }
-                case 4 -> {
-                    System.out.println("Відсортовані за видавництвом книги:");
-                    screen.showList(manager.sortByPublisher());
-                }
+                case 4 -> screen.showList(manager.sortByPublisher());
                 case 5 -> {
-                    System.out.print("Введіть шлях і назву файлу для збереження: ");
+                    System.out.print("Path: ");
                     String path = input.nextLine();
                     FileHandler.saveToFile(manager.getAllBooks(), path);
                 }
                 case 6 -> {
-                    System.out.print("Введіть шлях до файлу для зчитування: ");
+                    System.out.print("Path: ");
                     String path = input.nextLine();
                     List<Book> loaded = FileHandler.loadFromFile(path);
                     if (!loaded.isEmpty()) {
                         library.clear();
                         library.addAll(loaded);
-                        System.out.println("Бібліотеку оновлено з файлу.");
                         screen.showList(library);
                     }
                 }
-                case 7 -> {
-                    System.out.print("Введіть шлях до файлу: ");
-                    String path = input.nextLine();
-                    String line = FileHandler.getLongestLine(path);
-                    System.out.println("Рядок із найбільшою кількістю слів:");
-                    System.out.println(line);
-                }
-                case 8 -> {
-                    System.out.print("Введіть шлях вхідного файлу: ");
-                    String inPath = input.nextLine();
-                    System.out.print("Введіть шлях вихідного файлу: ");
-                    String outPath = input.nextLine();
-                    System.out.print("Введіть символ-ключ: ");
-                    char key = input.nextLine().charAt(0);
-                    FileHandler.encryptFile(inPath, outPath, key);
-                }
-                case 9 -> {
-                    System.out.print("Введіть шлях зашифрованого файлу: ");
-                    String inPath = input.nextLine();
-                    System.out.print("Введіть шлях для розшифрованого файлу: ");
-                    String outPath = input.nextLine();
-                    System.out.print("Введіть символ-ключ: ");
-                    char key = input.nextLine().charAt(0);
-                    FileHandler.decryptFile(inPath, outPath, key);
-                }
-                case 10 -> {
-                    System.out.print("Введіть URL сторінки: ");
-                    String url = input.nextLine();
-                    FileHandler.analyzeTags(url);
-                }
-                case 0 -> System.out.println("Програму завершено.");
-                default -> System.out.println("Невірний пункт меню.");
+                case 11 -> changeLanguage();
+                case 0 -> System.out.println(bundle.getString("menu.exit"));
+                default -> System.out.println("???");
             }
+
         } while (option != 0);
+    }
+
+    private static void printMenu() {
+        System.out.println("\n" + bundle.getString("menu.title"));
+        System.out.println("1 — " + bundle.getString("menu.option1"));
+        System.out.println("2 — " + bundle.getString("menu.option2"));
+        System.out.println("3 — " + bundle.getString("menu.option3"));
+        System.out.println("4 — " + bundle.getString("menu.option4"));
+        System.out.println("5 — " + bundle.getString("menu.option5"));
+        System.out.println("6 — " + bundle.getString("menu.option6"));
+        System.out.println("7 — " + bundle.getString("menu.option7"));
+        System.out.println("8 — " + bundle.getString("menu.option8"));
+        System.out.println("9 — " + bundle.getString("menu.option9"));
+        System.out.println("10 — " + bundle.getString("menu.option10"));
+        System.out.println("11 — " + bundle.getString("menu.option11"));
+        System.out.println("0 — " + bundle.getString("menu.exit"));
+    }
+
+    private static void changeLanguage() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("\n1 — Українська");
+        System.out.println("2 — English");
+        System.out.print(">> ");
+
+        int ch = Integer.parseInt(sc.nextLine());
+
+        if (ch == 1) {
+            currentLocale = new Locale("ua");
+        } else if (ch == 2) {
+            currentLocale = new Locale("en");
+        }
+
+        bundle = ResourceBundle.getBundle("location.messages", currentLocale);
+        System.out.println("✔ Language changed\n");
     }
 }
